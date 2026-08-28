@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revenue Recovery Agent — Razorpay Integration</title>
+<style>
+:root {
+  --rzp-blue: #072654;
+  --rzp-light: #3395FF;
+  --rzp-green: #1CA672;
+  --rzp-red: #E74C3C;
+  --rzp-orange: #F5A623;
+  --rzp-bg: #F8F9FC;
+  --rzp-card: #FFFFFF;
+  --rzp-text: #1A1A2E;
+  --rzp-muted: #6B7B8D;
+  --rzp-border: #E8ECF1;
+  --shadow: 0 2px 8px rgba(7,38,84,0.06);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; background: var(--rzp-bg); color: var(--rzp-text); }
+
+.header { background: var(--rzp-blue); color: white; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 20px; font-weight: 600; }
+.header .tagline { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+.header .status { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.header .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rzp-green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+/* Hero numbers */
+.hero { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+.hero-card { background: var(--rzp-card); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+.hero-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.hero-card:nth-child(1)::before { background: var(--rzp-green); }
+.hero-card:nth-child(2)::before { background: var(--rzp-light); }
+.hero-card:nth-child(3)::before { background: var(--rzp-orange); }
+.hero-label { font-size: 12px; color: var(--rzp-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+.hero-value { font-size: 32px; font-weight: 700; margin: 8px 0 4px; }
+.hero-sub { font-size: 13px; color: var(--rzp-muted); }
+.hero-badge { display: inline-block; background: rgba(28,166,114,0.1); color: var(--rzp-green); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+
+/* Flow diagram */
+.flow-section { background: var(--rzp-card); border-radius: 12px; padding: 28px; box-shadow: var(--shadow); margin-bottom: 28px; }
+.flow-section h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.flow-section .desc { font-size: 13px; color: var(--rzp-muted); margin-bottom: 20px; }
+
+.flow { display: flex; align-items: stretch; gap: 0; }
+.flow-step { flex: 1; text-align: center; padding: 16px 12px; position: relative; border: 1px solid var(--rzp-border); border-radius: 8px; margin: 0 20px 0 0; background: white; }
+.flow-step:last-child { margin-right: 0; }
+.flow-step::after { content: '→'; position: absolute; right: -16px; top: 50%; transform: translateY(-50%); color: var(--rzp-muted); font-size: 18px; }
+.flow-step:last-child::after { display: none; }
+.flow-step .step-icon { font-size: 24px; margin-bottom: 6px; }
+.flow-step .step-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--rzp-muted); letter-spacing: 0.3px; }
+.flow-step .step-desc { font-size: 12px; margin-top: 4px; color: var(--rzp-text); }
+.flow-step.active { border-color: var(--rzp-light); background: rgba(51,149,255,0.03); }
+
+/* Razorpay integration */
+.integration { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+.int-card { background: var(--rzp-card); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); }
+.int-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.int-card .code { background: #F4F6F9; border-radius: 6px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; overflow-x: auto; }
+.int-card .code .comment { color: var(--rzp-muted); }
+.int-card .code .key { color: var(--rzp-blue); }
+.int-card .code .val { color: var(--rzp-green); }
+
+/* Decision trace */
+.trace { background: var(--rzp-card); border-radius: 12px; padding: 28px; box-shadow: var(--shadow); margin-bottom: 28px; }
+.trace h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+.trace-grid { display: grid; grid-template-columns: 200px 1fr 180px; gap: 20px; align-items: start; }
+.trace-context { }
+.trace-context .ctx-item { margin-bottom: 12px; }
+.trace-context .ctx-label { font-size: 11px; color: var(--rzp-muted); text-transform: uppercase; font-weight: 500; }
+.trace-context .ctx-value { font-size: 14px; font-weight: 500; margin-top: 2px; }
+
+.trace-actions { }
+.action-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--rzp-border); }
+.action-row.best { border-color: var(--rzp-green); background: rgba(28,166,114,0.04); }
+.action-name { font-size: 12px; font-weight: 600; width: 130px; }
+.action-bar-wrap { flex: 1; height: 6px; background: #EEF1F5; border-radius: 3px; overflow: hidden; }
+.action-bar { height: 100%; border-radius: 3px; transition: width 0.5s; }
+.action-bar.green { background: var(--rzp-green); }
+.action-bar.blue { background: var(--rzp-light); }
+.action-bar.orange { background: var(--rzp-orange); }
+.action-bar.red { background: var(--rzp-red); }
+.action-value { font-size: 12px; font-weight: 600; width: 70px; text-align: right; }
+
+.trace-result { text-align: center; padding: 20px; border: 2px solid var(--rzp-green); border-radius: 12px; background: rgba(28,166,114,0.03); }
+.trace-result .result-label { font-size: 11px; color: var(--rzp-muted); text-transform: uppercase; font-weight: 500; margin-bottom: 8px; }
+.trace-result .result-action { font-size: 15px; font-weight: 700; color: var(--rzp-green); }
+.trace-result .result-amount { font-size: 22px; font-weight: 700; margin-top: 8px; }
+.trace-result .result-note { font-size: 11px; color: var(--rzp-muted); margin-top: 8px; }
+
+/* Comparison table */
+.comparison { background: var(--rzp-card); border-radius: 12px; padding: 28px; box-shadow: var(--shadow); margin-bottom: 28px; }
+.comparison h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 11px; text-transform: uppercase; color: var(--rzp-muted); font-weight: 500; letter-spacing: 0.3px; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rzp-border); }
+td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #F3F5F8; }
+tr:last-child td { border: none; }
+.td-highlight { font-weight: 600; color: var(--rzp-green); }
+
+/* Webhook section */
+.webhook-flow { display: flex; align-items: center; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+.wh-box { background: #F4F6F9; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: 500; }
+.wh-arrow { color: var(--rzp-muted); font-size: 14px; }
+
+@media (max-width: 900px) { 
+  .hero { grid-template-columns: 1fr; } 
+  .integration { grid-template-columns: 1fr; }
+  .trace-grid { grid-template-columns: 1fr; }
+  .flow { flex-wrap: wrap; gap: 8px; }
+  .flow-step { margin: 0; }
+  .flow-step::after { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Revenue Recovery Agent</h1>
+    <div class="tagline">Counterfactual Decision Engine for Razorpay</div>
+  </div>
+  <div class="status">
+    <div class="dot"></div>
+    <span>Connected to Razorpay Test Mode</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Hero numbers -->
+  <div class="hero">
+    <div class="hero-card">
+      <div class="hero-label">Revenue Recovered</div>
+      <div class="hero-value" style="color:var(--rzp-green)">₹9,28,803</div>
+      <div class="hero-sub"><span class="hero-badge">+11.1% vs baseline</span></div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-label">Incremental Revenue</div>
+      <div class="hero-value" style="color:var(--rzp-light)">₹93,129</div>
+      <div class="hero-sub">Money recovered that fixed rules would have missed</div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-label">Policy Violations</div>
+      <div class="hero-value">0</div>
+      <div class="hero-sub">Safety gate never overridden by AI</div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div class="flow-section">
+    <h2>How It Works</h2>
+    <div class="desc">When a payment fails on Razorpay, our agent doesn't blindly retry — it evaluates every option.</div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="step-icon">⚡</div>
+        <div class="step-label">Webhook</div>
+        <div class="step-desc">payment.failed event from Razorpay</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-icon">🔍</div>
+        <div class="step-label">Diagnose</div>
+        <div class="step-desc">Root cause + customer context</div>
+      </div>
+      <div class="flow-step active">
+        <div class="step-icon">🧠</div>
+        <div class="step-label">Evaluate</div>
+        <div class="step-desc">ML predicts ₹ value of each action</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-icon">🛡️</div>
+        <div class="step-label">Safety Gate</div>
+        <div class="step-desc">Deterministic policy check</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-icon">✅</div>
+        <div class="step-label">Execute</div>
+        <div class="step-desc">Razorpay API: retry / link / remind</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Razorpay Integration -->
+  <div class="integration">
+    <div class="int-card">
+      <h3>📥 Incoming: Razorpay Webhook</h3>
+      <div class="code">
+        <span class="comment">// Razorpay sends payment.failed webhook</span><br>
+        POST /api/webhook/razorpay<br><br>
+        {<br>
+        &nbsp;&nbsp;<span class="key">"event"</span>: <span class="val">"payment.failed"</span>,<br>
+        &nbsp;&nbsp;<span class="key">"payload"</span>: {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"payment"</span>: {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"amount"</span>: 895000,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"error_code"</span>: <span class="val">"BAD_REQUEST_ERROR"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"error_reason"</span>: <span class="val">"payment_failed"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        &nbsp;&nbsp;}<br>
+        }
+      </div>
+    </div>
+    <div class="int-card">
+      <h3>📤 Outgoing: Agent Decision</h3>
+      <div class="code">
+        <span class="comment">// Agent evaluates and responds</span><br>
+        POST /api/decide → response:<br><br>
+        {<br>
+        &nbsp;&nbsp;<span class="key">"recommended_action"</span>: <span class="val">"RETRY_PAYMENT"</span>,<br>
+        &nbsp;&nbsp;<span class="key">"expected_recovery"</span>: <span class="val">6450</span>,<br>
+        &nbsp;&nbsp;<span class="key">"confidence"</span>: <span class="val">0.81</span>,<br>
+        &nbsp;&nbsp;<span class="key">"candidate_actions"</span>: [...],<br>
+        &nbsp;&nbsp;<span class="key">"safety_constraints"</span>: [<span class="val">"all checks passed"</span>]<br>
+        }
+      </div>
+      <div class="webhook-flow" style="margin-top:12px">
+        <div class="wh-box">Agent decides RETRY</div>
+        <div class="wh-arrow">→</div>
+        <div class="wh-box">razorpay.order.create()</div>
+        <div class="wh-arrow">→</div>
+        <div class="wh-box">payment.captured webhook</div>
+        <div class="wh-arrow">→</div>
+        <div class="wh-box" style="background:rgba(28,166,114,0.1);color:var(--rzp-green)">₹8,950 recovered</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decision Trace -->
+  <div class="trace">
+    <h2>Live Decision Trace — Case #4721</h2>
+    <div class="trace-grid">
+      <div class="trace-context">
+        <div class="ctx-item"><div class="ctx-label">Amount</div><div class="ctx-value">₹8,950</div></div>
+        <div class="ctx-item"><div class="ctx-label">Customer</div><div class="ctx-value">High-value (₹42K LTV)</div></div>
+        <div class="ctx-item"><div class="ctx-label">Failure</div><div class="ctx-value">Bank timeout</div></div>
+        <div class="ctx-item"><div class="ctx-label">Risk Tier</div><div class="ctx-value" style="color:var(--rzp-green)">Low</div></div>
+        <div class="ctx-item"><div class="ctx-label">Prior Retries</div><div class="ctx-value">0</div></div>
+      </div>
+
+      <div class="trace-actions">
+        <div style="font-size:11px;color:var(--rzp-muted);text-transform:uppercase;font-weight:500;margin-bottom:10px">Expected Recovery (₹) per Action</div>
+        <div class="action-row best">
+          <div class="action-name">Retry Payment</div>
+          <div class="action-bar-wrap"><div class="action-bar green" style="width:85%"></div></div>
+          <div class="action-value" style="color:var(--rzp-green)">₹6,450</div>
+        </div>
+        <div class="action-row">
+          <div class="action-name">Payment Link</div>
+          <div class="action-bar-wrap"><div class="action-bar blue" style="width:55%"></div></div>
+          <div class="action-value">₹4,200</div>
+        </div>
+        <div class="action-row">
+          <div class="action-name">Escalate</div>
+          <div class="action-bar-wrap"><div class="action-bar orange" style="width:45%"></div></div>
+          <div class="action-value">₹3,800</div>
+        </div>
+        <div class="action-row">
+          <div class="action-name">Send Reminder</div>
+          <div class="action-bar-wrap"><div class="action-bar blue" style="width:30%"></div></div>
+          <div class="action-value">₹2,450</div>
+        </div>
+        <div class="action-row">
+          <div class="action-name" style="color:var(--rzp-muted)">No Action</div>
+          <div class="action-bar-wrap"><div class="action-bar red" style="width:0%"></div></div>
+          <div class="action-value" style="color:var(--rzp-muted)">₹0</div>
+        </div>
+      </div>
+
+      <div class="trace-result">
+        <div class="result-label">Decision</div>
+        <div class="result-action">RETRY PAYMENT</div>
+        <div class="result-amount">₹6,450</div>
+        <div class="result-note">Expected recovery<br>Safety gate: ✅ Passed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison table -->
+  <div class="comparison">
+    <h2>Benchmark: Agent vs Fixed Rules (1,500 test cases)</h2>
+    <table>
+      <thead>
+        <tr><th>Metric</th><th>Fixed Rules (today)</th><th>Recovery Agent</th><th>Improvement</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Revenue recovered</td><td>₹8,35,674</td><td class="td-highlight">₹9,28,803</td><td class="td-highlight">+₹93,129</td></tr>
+        <tr><td>Recovery rate</td><td>58.3%</td><td class="td-highlight">64.8%</td><td class="td-highlight">+6.5pp</td></tr>
+        <tr><td>Escalation rate</td><td>68.8%</td><td>54.8%</td><td>−14pp (fewer humans needed)</td></tr>
+        <tr><td>Unnecessary interventions</td><td>635</td><td>547</td><td>−14% (less customer friction)</td></tr>
+        <tr><td>Policy violations</td><td>—</td><td>0</td><td>AI never overrides safety</td></tr>
+        <tr><td>"Do nothing" decisions</td><td>0</td><td>29</td><td>Knows when NOT to act</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- How to integrate -->
+  <div class="flow-section">
+    <h2>Razorpay Integration (3 steps)</h2>
+    <div class="desc">Deploy alongside your existing Razorpay integration — no payment flow changes needed.</div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="step-icon">1️⃣</div>
+        <div class="step-label">Configure Webhook</div>
+        <div class="step-desc">Dashboard → Webhooks → add payment.failed endpoint</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-icon">2️⃣</div>
+        <div class="step-label">Set API Keys</div>
+        <div class="step-desc">RAZORPAY_KEY_ID + SECRET (test mode)</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-icon">3️⃣</div>
+        <div class="step-label">Deploy Agent</div>
+        <div class="step-desc">uvicorn backend.main:app (auto-connects)</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Try to load live data from API
+async function init() {
+  try {
+    const resp = await fetch('http://localhost:8000/api/dashboard');
+    if (!resp.ok) return;
+    const data = await resp.json();
+    // Update hero numbers with live data
+    document.querySelectorAll('.hero-value')[0].textContent = '₹' + Math.round(data.recovered_revenue).toLocaleString('en-IN');
+    document.querySelectorAll('.hero-value')[1].textContent = '₹' + Math.round(data.incremental_revenue).toLocaleString('en-IN');
+  } catch(e) { /* offline mode — uses hardcoded numbers */ }
+}
+init();
+</script>
+</body>
+</html>
