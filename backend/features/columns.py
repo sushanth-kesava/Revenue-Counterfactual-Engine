@@ -59,7 +59,6 @@ AGENT_INPUT_COLUMNS = [
     "velocity_flag",
     "previous_fraud_flag",
     "risk_signal_count",
-    "automated_recovery_risk",
 ]
 
 # Columns that encode the action taken (used as model input alongside context)
@@ -105,4 +104,15 @@ VALID_ACTIONS = [
     "SEND_REMINDER",
     "ESCALATE_TO_HUMAN",
     "NO_ACTION",
+]
+
+# Columns excluded from model features due to potential leakage.
+# 'automated_recovery_risk' is excluded because it is counter-intuitively
+# correlated with recovery success (high "risk" = 82% recovery rate),
+# suggesting it encodes outcome information. It was likely derived from
+# recovery suitability rather than representing genuine risk.
+EXCLUDED_LEAKY_COLUMNS = [
+    "automated_recovery_risk",
+    "high_risk_case",      # inverse of recovery_eligible, outcome-correlated
+    "recovery_eligible",   # suspiciously anti-correlated with actual recovery
 ]

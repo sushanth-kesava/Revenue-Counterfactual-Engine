@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from typing import Optional
 
-from .columns import AGENT_INPUT_COLUMNS, EVALUATION_COLUMNS, VALID_ACTIONS
+from .columns import AGENT_INPUT_COLUMNS, EVALUATION_COLUMNS, VALID_ACTIONS, EXCLUDED_LEAKY_COLUMNS
 
 
 # Categorical columns that need encoding
@@ -28,7 +28,6 @@ CATEGORICAL_COLUMNS = [
     "revenue_event",
     "failure_reason",
     "customer_value_segment",
-    "automated_recovery_risk",
     "risk_payment_method",
     "risk_device_type",
 ]
@@ -138,10 +137,13 @@ def build_feature_matrix(
     """
     # Validate no leakage
     leaked = set(df.columns) & set(EVALUATION_COLUMNS)
-    # We don't error if they're present in the source df (they will be), we just don't use them
+    # We don't error if they're in the source df, we just don't use them
+
+    # Remove leaky columns before feature engineering
+    excluded = set(EXCLUDED_LEAKY_COLUMNS)
     
     # Start with available input columns
-    available = [c for c in AGENT_INPUT_COLUMNS if c in df.columns]
+    available = [c for c in AGENT_INPUT_COLUMNS if c in df.columns and c not in excluded]
     work = df[available].copy()
 
     # Compute derived features

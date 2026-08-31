@@ -140,7 +140,6 @@ def _event_to_context_dict(event: RevenueEvent, ctx: CustomerContext) -> dict:
         "velocity_flag": getattr(event, "velocity_flag", False),
         "previous_fraud_flag": getattr(event, "previous_fraud_flag", False),
         "risk_signal_count": getattr(event, "risk_signal_count", 0),
-        "automated_recovery_risk": getattr(event, "automated_recovery_risk", "medium"),
     }
 
 
@@ -157,8 +156,11 @@ def evaluate_counterfactuals(
     autopsy = run_autopsy(event, ctx)
     context_dict = _event_to_context_dict(event, ctx)
 
-    # Get risk tier for penalty calculation
-    risk_tier = context_dict.get("automated_recovery_risk", "medium")
+    # Derive risk tier from risk_signal_count (not the leaky automated_recovery_risk)
+    rsc = context_dict.get("risk_signal_count", 0)
+    if rsc >= 3: risk_tier = "high"
+    elif rsc >= 1: risk_tier = "medium"
+    else: risk_tier = "low"
 
     options: list[CounterfactualOption] = []
     for action in _feasible_actions(event):

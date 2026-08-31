@@ -7,115 +7,115 @@
     "test": 1500,
     "total": 10000
   },
-  "feature_count": 88,
+  "feature_count": 84,
   "model_type": "HistGradientBoostingClassifier",
   "hyperparameters": {
-    "max_iter": 200,
-    "max_depth": 6,
+    "max_iter": 300,
+    "max_depth": 4,
     "learning_rate": 0.1,
-    "min_samples_leaf": 20,
+    "min_samples_leaf": 50,
     "early_stopping": true
   },
   "metrics": {
     "train": {
       "split": "train",
       "n_samples": 7000,
-      "auc_roc": 0.794,
-      "accuracy": 0.7266,
-      "precision": 0.7421,
-      "recall": 0.8023,
-      "f1": 0.771,
-      "log_loss": 0.5721,
+      "auc_roc": 0.7216,
+      "accuracy": 0.6609,
+      "precision": 0.6829,
+      "recall": 0.7632,
+      "f1": 0.7208,
+      "log_loss": 0.6085,
       "recovery_rate_actual": 0.5737,
-      "recovery_rate_predicted": 0.6203,
+      "recovery_rate_predicted": 0.6411,
       "per_action": {
         "RETRY_PAYMENT": {
           "count": 742,
           "actual_recovery_rate": 0.6361,
-          "predicted_recovery_rate": 0.6131
+          "predicted_recovery_rate": 0.6088
         },
         "CREATE_PAYMENT_LINK": {
           "count": 609,
           "actual_recovery_rate": 0.578,
-          "predicted_recovery_rate": 0.5555
+          "predicted_recovery_rate": 0.5548
         },
         "SEND_REMINDER": {
           "count": 230,
           "actual_recovery_rate": 0.4304,
-          "predicted_recovery_rate": 0.4646
+          "predicted_recovery_rate": 0.4691
         },
         "ESCALATE_TO_HUMAN": {
           "count": 5419,
           "actual_recovery_rate": 0.5708,
-          "predicted_recovery_rate": 0.5743
+          "predicted_recovery_rate": 0.5751
         }
       }
     },
     "validation": {
       "split": "validation",
       "n_samples": 1500,
-      "auc_roc": 0.6736,
-      "accuracy": 0.614,
-      "precision": 0.6446,
-      "recall": 0.7033,
-      "f1": 0.6727,
-      "log_loss": 0.6307,
+      "auc_roc": 0.6831,
+      "accuracy": 0.628,
+      "precision": 0.6552,
+      "recall": 0.7187,
+      "f1": 0.6855,
+      "log_loss": 0.6269,
       "recovery_rate_actual": 0.564,
-      "recovery_rate_predicted": 0.6153,
+      "recovery_rate_predicted": 0.6187,
       "per_action": {
         "RETRY_PAYMENT": {
           "count": 163,
           "actual_recovery_rate": 0.6012,
-          "predicted_recovery_rate": 0.6108
+          "predicted_recovery_rate": 0.608
         },
         "CREATE_PAYMENT_LINK": {
           "count": 130,
           "actual_recovery_rate": 0.6077,
-          "predicted_recovery_rate": 0.5596
+          "predicted_recovery_rate": 0.5616
         },
         "SEND_REMINDER": {
           "count": 38,
           "actual_recovery_rate": 0.5526,
-          "predicted_recovery_rate": 0.4528
+          "predicted_recovery_rate": 0.4655
         },
         "ESCALATE_TO_HUMAN": {
           "count": 1169,
           "actual_recovery_rate": 0.5543,
-          "predicted_recovery_rate": 0.5742
+          "predicted_recovery_rate": 0.5765
         }
       }
     },
     "test": {
       "split": "test",
       "n_samples": 1500,
-      "auc_roc": 0.6398,
-      "accuracy": 0.5993,
-      "precision": 0.6358,
-      "recall": 0.7088,
-      "f1": 0.6703,
-      "log_loss": 0.6478,
+      "auc_roc": 0.6442,
+      "accuracy": 0.598,
+      "precision": 0.6328,
+      "recall": 0.7158,
+      "f1": 0.6717,
+      "log_loss": 0.6411,
       "recovery_rate_actual": 0.5747,
-      "recovery_rate_predicted": 0.6407,
+      "recovery_rate_predicted": 0.65,
       "per_action": {
         "RETRY_PAYMENT": {
           "count": 147,
           "actual_recovery_rate": 0.5918,
-          "predicted_recovery_rate": 0.6167
+          "predicted_recovery_rate": 0.6153
         },
         "CREATE_PAYMENT_LINK": {
           "count": 117,
           "actual_recovery_rate": 0.5897,
-          "predicted_recovery_rate": 0.5519
+          "predicted_recovery_rate": 0.5538
         },
         "SEND_REMINDER": {
           "count": 42,
           "actual_recovery_rate": 0.5238,
-          "predicted_recovery_rate": 0.4771
+          "predicted_recovery_rate": 0.4804
         },
         "ESCALATE_TO_HUMAN": {
           "count": 1194,
           "actual_recovery_rate": 0.5729,
-          "predicted_recovery_rate": 0.5819
+          "predicted_recovery_rate": 0.5838
         }
       }
     }

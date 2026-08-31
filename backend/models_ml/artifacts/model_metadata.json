@@ -2,7 +2,6 @@
   "feature_names": [
     "transaction_amount",
     "retry_count",
-    "recovery_eligible",
     "customer_age",
     "behavior_transactions",
     "behavior_total_spend",
@@ -72,9 +71,6 @@
     "customer_value_segment_low",
     "customer_value_segment_medium",
     "customer_value_segment_very_high",
-    "automated_recovery_risk_high",
-    "automated_recovery_risk_low",
-    "automated_recovery_risk_medium",
     "risk_payment_method_Apple Pay",
     "risk_payment_method_Credit Card",
     "risk_payment_method_Debit Card",
@@ -90,5 +86,5 @@
     "action_NO_ACTION"
   ],
   "model_type": "HistGradientBoostingClassifier",
-  "n_features": 88
+  "n_features": 84
 }

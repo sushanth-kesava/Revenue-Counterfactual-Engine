@@ -157,8 +157,12 @@ def _run_agent_on_dataset(df: pd.DataFrame, model: RecoveryModel, config: Decisi
         action_probs = model.predict_action_values(context)
 
         # Compute expected utility for each action
-        risk_tier = row.get("automated_recovery_risk", "medium")
         amount = row["transaction_amount"]
+        # Derive risk tier from risk_signal_count (not the leaky automated_recovery_risk)
+        rsc = row.get("risk_signal_count", 0)
+        if rsc >= 3: risk_tier = "high"
+        elif rsc >= 1: risk_tier = "medium"
+        else: risk_tier = "low"
         risk_multiplier = config.risk_penalties.get_multiplier(risk_tier)
 
         best_action = "NO_ACTION"
@@ -198,19 +202,32 @@ def _run_agent_on_dataset(df: pd.DataFrame, model: RecoveryModel, config: Decisi
         else:
             policy_override = False
 
-        # Determine outcome based on actual data
-        # The dataset has actual_recovery_success for the POLICY_RECOMMENDED_ACTION
-        # For fair comparison: if agent picks same action as dataset, use actual outcome
-        # Otherwise: use the action-specific expected probability as simulated outcome
+        # Determine outcome using the ORACLE (CSV's environment probabilities)
+        # NOT the model's own predictions — this prevents circularity.
+        #
+        # The CSV provides per-action "true" probabilities from the synthetic
+        # counterfactual environment. These are independent of the model.
+        # When the agent picks the same action as the CSV recorded, we can
+        # use the observed outcome directly. Otherwise, we draw from the
+        # oracle's probability for the chosen action.
+        ORACLE_PROB_MAP = {
+            "RETRY_PAYMENT": "retry_expected_probability",
+            "CREATE_PAYMENT_LINK": "payment_link_expected_probability",
+            "SEND_REMINDER": "reminder_expected_probability",
+            "ESCALATE_TO_HUMAN": "escalation_expected_probability",
+            "NO_ACTION": None,
+        }
+
         actual_action_in_data = row.get("policy_recommended_action", "")
         if best_action == actual_action_in_data:
             recovered = row["actual_recovery_success"]
             recovered_amount = row["actual_recovered_amount"]
         else:
-            # Simulate outcome using the benchmark's own probabilities for this action
+            # Draw outcome from the ORACLE's probability, not the model's
             import random
             rng = random.Random(seed_from_case(row.get("case_id", str(idx))))
-            p = action_probs.get(best_action, 0.0)
+            oracle_col = ORACLE_PROB_MAP.get(best_action)
+            p = float(row[oracle_col]) if oracle_col and oracle_col in row.index else 0.0
             recovered = rng.random() < p
             recovered_amount = amount if recovered else 0.0
 
@@ -219,7 +236,7 @@ def _run_agent_on_dataset(df: pd.DataFrame, model: RecoveryModel, config: Decisi
             "selected_action": best_action,
             "expected_recovery": best_utility,
             "probability": action_probs.get(best_action, 0.0),
-            "actual_recovered": recovered,
+            "actual_recovered": bool(recovered),
             "actual_recovered_amount": recovered_amount,
             "policy_override": policy_override,
             "action_details": action_details,
@@ -371,9 +388,9 @@ def _build_ledger(test_df: pd.DataFrame, results: pd.DataFrame) -> list[dict]:
             "selected_action": res["selected_action"],
             "expected_recovery": float(res["expected_recovery"]),
             "probability": float(res["probability"]),
-            "actual_recovered": bool(res["actual_recovered"]),
+            "actual_recovered": bool(res.get("actual_recovered", False)),
             "actual_recovered_amount": float(res["actual_recovered_amount"]),
-            "policy_override": bool(res.get("policy_override", False)),
+            "risk_tier": risk_tier if 'risk_tier' in dir() else "medium",
         })
     return ledger
 

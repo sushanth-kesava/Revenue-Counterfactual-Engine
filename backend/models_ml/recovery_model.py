@@ -165,8 +165,8 @@ class HistGBMRecoveryModel(RecoveryModel):
         X_aligned = X[feature_names] if set(feature_names).issubset(X.columns) else X
 
         self._model = HistGradientBoostingClassifier(
-            max_iter=200, max_depth=6, learning_rate=0.1,
-            min_samples_leaf=20, max_bins=255, random_state=42,
+            max_iter=300, max_depth=4, learning_rate=0.1,
+            min_samples_leaf=50, max_bins=255, random_state=42,
             early_stopping=True, validation_fraction=0.15, n_iter_no_change=15,
         )
         self._model.fit(X_aligned.values, y.values)
@@ -248,9 +248,10 @@ class FallbackRuleModel(RecoveryModel):
         retry_count = context.get("retry_count", 0)
         if action == "RETRY_PAYMENT": adj -= 0.10 * retry_count
 
-        risk = context.get("automated_recovery_risk", "medium")
-        if risk == "high": adj += 0.10
-        elif risk == "low": adj -= 0.05
+        # Use risk_signal_count for risk adjustment (not the leaky automated_recovery_risk)
+        rsc = context.get("risk_signal_count", 0)
+        if rsc >= 3: adj -= 0.08   # high risk = lower recovery chance
+        elif rsc == 0: adj += 0.03  # no risk signals = slight boost
 
         # Returning customer boost
         hist_txns = context.get("historical_transactions", 0)

@@ -199,10 +199,10 @@ def train_model(data_path: str, seed: int = 42) -> dict:
         "feature_count": len(feature_names),
         "model_type": "HistGradientBoostingClassifier",
         "hyperparameters": {
-            "max_iter": 200,
-            "max_depth": 6,
+            "max_iter": 300,
+            "max_depth": 4,
             "learning_rate": 0.1,
-            "min_samples_leaf": 20,
+            "min_samples_leaf": 50,
             "early_stopping": True,
         },
         "metrics": {

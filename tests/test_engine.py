@@ -358,14 +358,15 @@ def test_customer_aggregation_handles_missing_ids():
 # --------------------------------------------------------------------------- #
 
 def test_risk_signal_count_affects_model():
-    """Cases with more risk signals should get different probability estimates."""
+    """Cases with more risk signals should get lower recovery probability."""
     model = FallbackRuleModel()
-    low_risk = {"automated_recovery_risk": "low", "retry_count": 0, "customer_value_segment": "high"}
-    high_risk = {"automated_recovery_risk": "high", "retry_count": 0, "customer_value_segment": "high"}
+    low_risk = {"risk_signal_count": 0, "retry_count": 0, "customer_value_segment": "high"}
+    high_risk = {"risk_signal_count": 4, "retry_count": 0, "customer_value_segment": "high"}
     p_low = model.predict_probability(low_risk, "RETRY_PAYMENT")
     p_high = model.predict_probability(high_risk, "RETRY_PAYMENT")
-    # High-risk cases have higher recovery potential in this model
+    # More risk signals = lower recovery probability
     assert p_high != p_low
+    assert p_high < p_low
 
 
 # --------------------------------------------------------------------------- #
