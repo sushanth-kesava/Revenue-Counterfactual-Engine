@@ -1,2 +1,16 @@
+[project]
+name = "revenue-counterfactual-engine"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+	"fastapi>=0.110",
+	"uvicorn>=0.29",
+	"pydantic>=2.6",
+	"numpy>=1.24",
+	"pandas>=2.0",
+	"scikit-learn>=1.3",
+	"razorpay>=1.4",
+]
+
 [tool.vercel]
 entrypoint = "backend.main:app"
