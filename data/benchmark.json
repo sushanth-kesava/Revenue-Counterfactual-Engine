@@ -9,17 +9,17 @@
     "system": "counterfactual_agent",
     "n_events": 1500,
     "revenue_at_risk": 1433037.31,
-    "revenue_recovered": 776727.09,
-    "recovery_rate": 54.2,
-    "incremental_revenue": -58947.21,
-    "uplift_pct": -7.05,
+    "revenue_recovered": 790688.09,
+    "recovery_rate": 55.18,
+    "incremental_revenue": -44986.21,
+    "uplift_pct": -5.38,
     "intervention_rate": 96.93,
-    "unnecessary_interventions": 663,
-    "unnecessary_intervention_rate": 44.2,
+    "unnecessary_interventions": 640,
+    "unnecessary_intervention_rate": 42.67,
     "escalation_rate": 59.93,
     "no_action_rate": 3.07,
     "policy_violations": 0,
-    "avg_recovered_per_case": 517.82
+    "avg_recovered_per_case": 527.13
   },
   "baseline": {
     "system": "fixed_rule_baseline",
@@ -55,66 +55,66 @@
         "segment_value": "customer_inactivity",
         "n_events": 133,
         "revenue_at_risk": 117032.02,
-        "revenue_recovered_agent": 58217.72,
+        "revenue_recovered_agent": 65721.4,
         "revenue_recovered_baseline": 65030.8,
-        "recovery_rate_agent": 49.75,
+        "recovery_rate_agent": 56.16,
         "recovery_rate_baseline": 55.57,
-        "uplift_pct": -10.48
+        "uplift_pct": 1.06
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "subscription_payment_failed",
         "n_events": 85,
         "revenue_at_risk": 68166.28,
-        "revenue_recovered_agent": 32762.39,
+        "revenue_recovered_agent": 48621.06,
         "revenue_recovered_baseline": 48823.03,
-        "recovery_rate_agent": 48.06,
+        "recovery_rate_agent": 71.33,
         "recovery_rate_baseline": 71.62,
-        "uplift_pct": -32.9
+        "uplift_pct": -0.41
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "temporary_bank_error",
         "n_events": 122,
         "revenue_at_risk": 104070.97,
-        "revenue_recovered_agent": 63845.62,
+        "revenue_recovered_agent": 66988.4,
         "revenue_recovered_baseline": 50774.49,
-        "recovery_rate_agent": 61.35,
+        "recovery_rate_agent": 64.37,
         "recovery_rate_baseline": 48.79,
-        "uplift_pct": 25.74
+        "uplift_pct": 31.93
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "bank_timeout",
         "n_events": 140,
         "revenue_at_risk": 119751.98,
-        "revenue_recovered_agent": 64140.13,
+        "revenue_recovered_agent": 63295.53,
         "revenue_recovered_baseline": 69695.35,
-        "recovery_rate_agent": 53.56,
+        "recovery_rate_agent": 52.86,
         "recovery_rate_baseline": 58.2,
-        "uplift_pct": -7.97
+        "uplift_pct": -9.18
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "checkout_abandoned",
         "n_events": 128,
         "revenue_at_risk": 136642.65,
-        "revenue_recovered_agent": 61098.45,
+        "revenue_recovered_agent": 51428.95,
         "revenue_recovered_baseline": 92163.67,
-        "recovery_rate_agent": 44.71,
+        "recovery_rate_agent": 37.64,
         "recovery_rate_baseline": 67.45,
-        "uplift_pct": -33.71
+        "uplift_pct": -44.2
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "expired_payment_method",
         "n_events": 75,
         "revenue_at_risk": 78971.7,
-        "revenue_recovered_agent": 50540.18,
+        "revenue_recovered_agent": 55144.37,
         "revenue_recovered_baseline": 55321.41,
-        "recovery_rate_agent": 64.0,
+        "recovery_rate_agent": 69.83,
         "recovery_rate_baseline": 70.05,
-        "uplift_pct": -8.64
+        "uplift_pct": -0.32
       },
       {
         "segment_name": "failure_reason",
@@ -132,88 +132,88 @@
         "segment_value": "payment_not_received",
         "n_events": 64,
         "revenue_at_risk": 49209.76,
-        "revenue_recovered_agent": 21586.97,
+        "revenue_recovered_agent": 21587.91,
         "revenue_recovered_baseline": 14640.76,
         "recovery_rate_agent": 43.87,
         "recovery_rate_baseline": 29.75,
-        "uplift_pct": 47.44
+        "uplift_pct": 47.45
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "payment_method_failure",
         "n_events": 139,
         "revenue_at_risk": 148213.92,
-        "revenue_recovered_agent": 77361.29,
+        "revenue_recovered_agent": 82226.86,
         "revenue_recovered_baseline": 89182.68,
-        "recovery_rate_agent": 52.2,
+        "recovery_rate_agent": 55.48,
         "recovery_rate_baseline": 60.17,
-        "uplift_pct": -13.26
+        "uplift_pct": -7.8
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "payment_page_abandoned",
         "n_events": 119,
         "revenue_at_risk": 113009.36,
-        "revenue_recovered_agent": 58186.09,
+        "revenue_recovered_agent": 59135.26,
         "revenue_recovered_baseline": 80494.55,
-        "recovery_rate_agent": 51.49,
+        "recovery_rate_agent": 52.33,
         "recovery_rate_baseline": 71.23,
-        "uplift_pct": -27.71
+        "uplift_pct": -26.54
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "invoice_overdue",
         "n_events": 83,
         "revenue_at_risk": 88684.83,
-        "revenue_recovered_agent": 67885.95,
+        "revenue_recovered_agent": 64691.82,
         "revenue_recovered_baseline": 62269.75,
-        "recovery_rate_agent": 76.55,
+        "recovery_rate_agent": 72.95,
         "recovery_rate_baseline": 70.21,
-        "uplift_pct": 9.02
+        "uplift_pct": 3.89
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "recurring_payment_failure",
         "n_events": 71,
         "revenue_at_risk": 56788.77,
-        "revenue_recovered_agent": 38665.0,
+        "revenue_recovered_agent": 31544.75,
         "revenue_recovered_baseline": 30819.14,
-        "recovery_rate_agent": 68.09,
+        "recovery_rate_agent": 55.55,
         "recovery_rate_baseline": 54.27,
-        "uplift_pct": 25.46
+        "uplift_pct": 2.35
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "insufficient_funds",
         "n_events": 106,
         "revenue_at_risk": 130509.64,
-        "revenue_recovered_agent": 77169.02,
+        "revenue_recovered_agent": 74598.39,
         "revenue_recovered_baseline": 45830.93,
-        "recovery_rate_agent": 59.13,
+        "recovery_rate_agent": 57.16,
         "recovery_rate_baseline": 35.12,
-        "uplift_pct": 68.38
+        "uplift_pct": 62.77
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "customer_delay",
         "n_events": 89,
         "revenue_at_risk": 103215.18,
-        "revenue_recovered_agent": 43391.64,
+        "revenue_recovered_agent": 45370.15,
         "revenue_recovered_baseline": 60780.41,
-        "recovery_rate_agent": 42.04,
+        "recovery_rate_agent": 43.96,
         "recovery_rate_baseline": 58.89,
-        "uplift_pct": -28.61
+        "uplift_pct": -25.35
       },
       {
         "segment_name": "failure_reason",
         "segment_value": "multiple_bank_failures",
         "n_events": 51,
         "revenue_at_risk": 50147.69,
-        "revenue_recovered_agent": 29731.53,
+        "revenue_recovered_agent": 28188.13,
         "revenue_recovered_baseline": 32664.9,
-        "recovery_rate_agent": 59.29,
+        "recovery_rate_agent": 56.21,
         "recovery_rate_baseline": 65.14,
-        "uplift_pct": -8.98
+        "uplift_pct": -13.71
       }
     ],
     "revenue_event": [
@@ -222,55 +222,55 @@
         "segment_value": "repeated_payment_failure",
         "n_events": 146,
         "revenue_at_risk": 118770.25,
-        "revenue_recovered_agent": 61876.64,
+        "revenue_recovered_agent": 60333.24,
         "revenue_recovered_baseline": 69847.33,
-        "recovery_rate_agent": 52.1,
+        "recovery_rate_agent": 50.8,
         "recovery_rate_baseline": 58.81,
-        "uplift_pct": -11.41
+        "uplift_pct": -13.62
       },
       {
         "segment_name": "revenue_event",
         "segment_value": "checkout_abandonment",
         "n_events": 380,
         "revenue_at_risk": 366684.03,
-        "revenue_recovered_agent": 177502.26,
+        "revenue_recovered_agent": 176285.61,
         "revenue_recovered_baseline": 237689.02,
-        "recovery_rate_agent": 48.41,
+        "recovery_rate_agent": 48.08,
         "recovery_rate_baseline": 64.82,
-        "uplift_pct": -25.32
+        "uplift_pct": -25.83
       },
       {
         "segment_name": "revenue_event",
         "segment_value": "subscription_failure",
         "n_events": 231,
         "revenue_at_risk": 203926.75,
-        "revenue_recovered_agent": 121967.57,
+        "revenue_recovered_agent": 135310.18,
         "revenue_recovered_baseline": 134963.58,
-        "recovery_rate_agent": 59.81,
+        "recovery_rate_agent": 66.35,
         "recovery_rate_baseline": 66.18,
-        "uplift_pct": -9.63
+        "uplift_pct": 0.26
       },
       {
         "segment_name": "revenue_event",
         "segment_value": "payment_failure",
         "n_events": 507,
         "revenue_at_risk": 502546.51,
-        "revenue_recovered_agent": 282516.06,
+        "revenue_recovered_agent": 287109.18,
         "revenue_recovered_baseline": 255483.45,
-        "recovery_rate_agent": 56.22,
+        "recovery_rate_agent": 57.13,
         "recovery_rate_baseline": 50.84,
-        "uplift_pct": 10.58
+        "uplift_pct": 12.38
       },
       {
         "segment_name": "revenue_event",
         "segment_value": "invoice_overdue",
         "n_events": 236,
         "revenue_at_risk": 241109.77,
-        "revenue_recovered_agent": 132864.56,
+        "revenue_recovered_agent": 131649.88,
         "revenue_recovered_baseline": 137690.92,
-        "recovery_rate_agent": 55.11,
+        "recovery_rate_agent": 54.6,
         "recovery_rate_baseline": 57.11,
-        "uplift_pct": -3.51
+        "uplift_pct": -4.39
       }
     ],
     "automated_recovery_risk": [
@@ -279,22 +279,22 @@
         "segment_value": "medium",
         "n_events": 770,
         "revenue_at_risk": 715043.6,
-        "revenue_recovered_agent": 318411.23,
+        "revenue_recovered_agent": 324025.94,
         "revenue_recovered_baseline": 362887.53,
-        "recovery_rate_agent": 44.53,
+        "recovery_rate_agent": 45.32,
         "recovery_rate_baseline": 50.75,
-        "uplift_pct": -12.26
+        "uplift_pct": -10.71
       },
       {
         "segment_name": "automated_recovery_risk",
         "segment_value": "low",
         "n_events": 372,
         "revenue_at_risk": 361864.75,
-        "revenue_recovered_agent": 173035.7,
+        "revenue_recovered_agent": 181381.99,
         "revenue_recovered_baseline": 181164.42,
-        "recovery_rate_agent": 47.82,
+        "recovery_rate_agent": 50.12,
         "recovery_rate_baseline": 50.06,
-        "uplift_pct": -4.49
+        "uplift_pct": 0.12
       },
       {
         "segment_name": "automated_recovery_risk",
@@ -314,44 +314,44 @@
         "segment_value": "medium",
         "n_events": 385,
         "revenue_at_risk": 428032.63,
-        "revenue_recovered_agent": 234687.64,
+        "revenue_recovered_agent": 242453.27,
         "revenue_recovered_baseline": 216190.83,
-        "recovery_rate_agent": 54.83,
+        "recovery_rate_agent": 56.64,
         "recovery_rate_baseline": 50.51,
-        "uplift_pct": 8.56
+        "uplift_pct": 12.15
       },
       {
         "segment_name": "customer_value_segment",
         "segment_value": "low",
         "n_events": 349,
         "revenue_at_risk": 297650.95,
-        "revenue_recovered_agent": 148274.74,
+        "revenue_recovered_agent": 155706.22,
         "revenue_recovered_baseline": 173702.91,
-        "recovery_rate_agent": 49.81,
+        "recovery_rate_agent": 52.31,
         "recovery_rate_baseline": 58.36,
-        "uplift_pct": -14.64
+        "uplift_pct": -10.36
       },
       {
         "segment_name": "customer_value_segment",
         "segment_value": "very_high",
         "n_events": 369,
         "revenue_at_risk": 358890.05,
-        "revenue_recovered_agent": 207835.37,
+        "revenue_recovered_agent": 206517.5,
         "revenue_recovered_baseline": 267156.86,
-        "recovery_rate_agent": 57.91,
+        "recovery_rate_agent": 57.54,
         "recovery_rate_baseline": 74.44,
-        "uplift_pct": -22.2
+        "uplift_pct": -22.7
       },
       {
         "segment_name": "customer_value_segment",
         "segment_value": "high",
         "n_events": 397,
         "revenue_at_risk": 348463.68,
-        "revenue_recovered_agent": 185929.34,
+        "revenue_recovered_agent": 186011.1,
         "revenue_recovered_baseline": 178623.7,
-        "recovery_rate_agent": 53.36,
+        "recovery_rate_agent": 53.38,
         "recovery_rate_baseline": 51.26,
-        "uplift_pct": 4.09
+        "uplift_pct": 4.14
       }
     ],
     "amount_bucket": [
@@ -360,55 +360,55 @@
         "segment_value": "200-500",
         "n_events": 350,
         "revenue_at_risk": 114876.7,
-        "revenue_recovered_agent": 59962.37,
+        "revenue_recovered_agent": 60658.9,
         "revenue_recovered_baseline": 65998.97,
-        "recovery_rate_agent": 52.2,
+        "recovery_rate_agent": 52.8,
         "recovery_rate_baseline": 57.45,
-        "uplift_pct": -9.15
+        "uplift_pct": -8.09
       },
       {
         "segment_name": "amount_bucket",
         "segment_value": "<200",
         "n_events": 582,
         "revenue_at_risk": 56259.1,
-        "revenue_recovered_agent": 29481.45,
+        "revenue_recovered_agent": 31065.65,
         "revenue_recovered_baseline": 33376.42,
-        "recovery_rate_agent": 52.4,
+        "recovery_rate_agent": 55.22,
         "recovery_rate_baseline": 59.33,
-        "uplift_pct": -11.67
+        "uplift_pct": -6.92
       },
       {
         "segment_name": "amount_bucket",
         "segment_value": "1000-5000",
         "n_events": 310,
         "revenue_at_risk": 664027.75,
-        "revenue_recovered_agent": 387832.72,
+        "revenue_recovered_agent": 387355.18,
         "revenue_recovered_baseline": 352379.16,
-        "recovery_rate_agent": 58.41,
+        "recovery_rate_agent": 58.33,
         "recovery_rate_baseline": 53.07,
-        "uplift_pct": 10.06
+        "uplift_pct": 9.93
       },
       {
         "segment_name": "amount_bucket",
         "segment_value": "500-1000",
         "n_events": 208,
         "revenue_at_risk": 149313.08,
-        "revenue_recovered_agent": 78677.92,
+        "revenue_recovered_agent": 83256.87,
         "revenue_recovered_baseline": 88842.51,
-        "recovery_rate_agent": 52.69,
+        "recovery_rate_agent": 55.76,
         "recovery_rate_baseline": 59.5,
-        "uplift_pct": -11.44
+        "uplift_pct": -6.29
       },
       {
         "segment_name": "amount_bucket",
         "segment_value": "5000+",
         "n_events": 50,
         "revenue_at_risk": 448560.68,
-        "revenue_recovered_agent": 220772.63,
+        "revenue_recovered_agent": 228351.49,
         "revenue_recovered_baseline": 295077.24,
-        "recovery_rate_agent": 49.22,
+        "recovery_rate_agent": 50.91,
         "recovery_rate_baseline": 65.78,
-        "uplift_pct": -25.18
+        "uplift_pct": -22.61
       }
     ]
   },
@@ -436,8 +436,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 120.48862247012637,
       "probability": 0.5853287115543,
-      "actual_recovered": true,
-      "actual_recovered_amount": 214.39
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_003145",
@@ -488,8 +488,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 375.16751185695773,
       "probability": 0.6239590432045379,
-      "actual_recovered": true,
-      "actual_recovered_amount": 662.36
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_000635",
@@ -787,8 +787,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 14.347969106491721,
       "probability": 0.6729223794749428,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 31.06
     },
     {
       "case_id": "CASE_000214",
@@ -826,8 +826,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 85.47859412705537,
       "probability": 0.6012281840322613,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 164.14
     },
     {
       "case_id": "CASE_008818",
@@ -839,8 +839,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 2310.7303444935774,
       "probability": 0.6187114201251943,
-      "actual_recovered": true,
-      "actual_recovered_amount": 4071.89
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_002044",
@@ -852,8 +852,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 865.195002016632,
       "probability": 0.5784564263991294,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 2031.0
     },
     {
       "case_id": "CASE_005421",
@@ -917,8 +917,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 27.71958870035324,
       "probability": 0.549848328245793,
-      "actual_recovered": true,
-      "actual_recovered_amount": 81.83
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_004168",
@@ -1112,8 +1112,8 @@
       "selected_action": "CREATE_PAYMENT_LINK",
       "expected_recovery": 424.94983495977306,
       "probability": 0.6094823671040177,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 773.84
     },
     {
       "case_id": "CASE_002947",
@@ -1151,8 +1151,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 622.0151122936361,
       "probability": 0.5976592822898384,
-      "actual_recovered": true,
-      "actual_recovered_amount": 1144.9
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_006060",
@@ -1281,8 +1281,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 323.7499093045201,
       "probability": 0.6300390007951056,
-      "actual_recovered": true,
-      "actual_recovered_amount": 684.84
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_005180",
@@ -1411,8 +1411,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 106.56189476925861,
       "probability": 0.6140136237070708,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 197.8
     },
     {
       "case_id": "CASE_000934",
@@ -1463,8 +1463,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 141.46269709480404,
       "probability": 0.5943379340778479,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 246.43
     },
     {
       "case_id": "CASE_004180",
@@ -1489,8 +1489,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 24.079015608350513,
       "probability": 0.6276522766855485,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 50.34
     },
     {
       "case_id": "CASE_004117",
@@ -1541,8 +1541,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 380.1994792703581,
       "probability": 0.5971738959492572,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 703.98
     },
     {
       "case_id": "CASE_005659",
@@ -1658,8 +1658,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 97.68027689532029,
       "probability": 0.5377361109256109,
-      "actual_recovered": true,
-      "actual_recovered_amount": 264.82
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_006541",
@@ -1684,8 +1684,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 635.0657210441641,
       "probability": 0.6010682058064263,
-      "actual_recovered": true,
-      "actual_recovered_amount": 1161.5
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_003357",
@@ -1736,8 +1736,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 219.91574863237733,
       "probability": 0.5802740743425141,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 424.15
     },
     {
       "case_id": "CASE_002429",
@@ -1970,8 +1970,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 51.75775865768968,
       "probability": 0.4952418409835138,
-      "actual_recovered": true,
-      "actual_recovered_amount": 164.4
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_007060",
@@ -2139,8 +2139,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 27.80747308392288,
       "probability": 0.47958587251437573,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 76.37
     },
     {
       "case_id": "CASE_005344",
@@ -2295,8 +2295,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 256.2966107400979,
       "probability": 0.5883656462162127,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 596.07
     },
     {
       "case_id": "CASE_004796",
@@ -2386,8 +2386,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 595.3568145668601,
       "probability": 0.6131525138607512,
-      "actual_recovered": true,
-      "actual_recovered_amount": 1296.24
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_001705",
@@ -2425,8 +2425,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 167.24861916109603,
       "probability": 0.6529450454365102,
-      "actual_recovered": true,
-      "actual_recovered_amount": 342.48
+      "actual_recovered": false,
+      "actual_recovered_amount": 0.0
     },
     {
       "case_id": "CASE_002384",
@@ -2477,8 +2477,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 383.29336994095706,
       "probability": 0.6358379148173764,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 662.8
     },
     {
       "case_id": "CASE_003931",
@@ -2594,8 +2594,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 29.65585707337408,
       "probability": 0.5266940986236313,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 92.0
     },
     {
       "case_id": "CASE_004037",
@@ -2737,8 +2737,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 168.34485407183382,
       "probability": 0.5788128556187732,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 327.8
     },
     {
       "case_id": "CASE_005017",
@@ -2789,8 +2789,8 @@
       "selected_action": "RETRY_PAYMENT",
       "expected_recovery": 217.74805093584817,
       "probability": 0.5363388374398991,
-      "actual_recovered": false,
-      "actual_recovered_amount": 0.0
+      "actual_recovered": true,
+      "actual_recovered_amount": 458.01
     },
     {
       "case_id": "CASE_001291",

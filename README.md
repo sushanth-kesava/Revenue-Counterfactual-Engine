@@ -1,135 +1,169 @@
 # Revenue Counterfactual Engine
 
-**Track 03 — AI Revenue Recovery** (Razorpay Buildathon)
+Track 03 - AI Revenue Recovery (Razorpay Buildathon)
 
-> When revenue fails, the best action is **not always retry**.
-
----
+When revenue fails, the best action is not always retry.
 
 ## What It Does
 
-When a payment fails on Razorpay, this engine **doesn't blindly retry**. It evaluates every possible recovery action, predicts the expected monetary value of each, and picks the one that maximizes revenue — all within safety constraints.
+When a payment fails on Razorpay, this engine doesn't blindly retry. It looks at who the customer is, why the payment failed, and what each recovery option is actually worth in rupees. Then it picks the best one.
+
+## Architecture
 
 ```
-Payment fails on Razorpay
-        │
-   ① WEBHOOK IN ─── Razorpay sends payment.failed to your server
-        │
-   ② DIAGNOSE ───── Root cause + customer context (87 features)
-        │
-   ③ EVALUATE ───── ML model predicts ₹ value of each action
-        │
-   ④ SAFETY GATE ── Deterministic policy check (AI cannot override)
-        │
-   ⑤ EXECUTE ────── Razorpay API: retry / payment link / remind / escalate
-        │
-   ⑥ RECONCILE ──── Razorpay webhooks back with the result
+                         RAZORPAY
+                            |
+                    payment.failed webhook
+                            |
+                            v
+              +----------------------------+
+              |   Webhook Receiver         |
+              |   main.py                  |
+              |   HMAC signature verify    |
+              +----------------------------+
+                            |
+                            v
+  +------------------+    +----------------------------+    +------------------+
+  | Customer Behavior|    |   Context Builder          |    | Risk Engine      |
+  | Transaction Hist.|===>|   context.py               |<===| risk_engine.py   |
+  | Fraud/Risk Data  |    |   87 features engineered   |    | RevenueAutopsy   |
+  +------------------+    +----------------------------+    +------------------+
+                            |
+                            v
+              +----------------------------+
+              |   Recovery Model           |
+              |   HistGradientBoosting     |
+              |   recovery_model.py        |
+              |                            |
+              |   outputs per action:      |
+              |   P(recovery | action,ctx) |
+              +----------------------------+
+                            |
+                            v
+              +----------------------------+
+              |   Counterfactual Engine    |
+              |   counterfactual_engine.py |
+              |                            |
+              |   EMV = Amt x P - Cost     |
+              |         - Risk Penalty     |
+              |                            |
+              |   picks highest EMV action |
+              +----------------------------+
+                            |
+                            v
+              +----------------------------+
+              |   Safety Gate              |     The AI cannot
+              |   policy_engine.py         |     override this.
+              |                            |     Policy violations: 0
+              |   fraud? -> ESCALATE       |     (guaranteed)
+              |   >50K?  -> HUMAN APPROVAL |
+              |   retries maxed? -> ESCAL. |
+              +----------------------------+
+                            |
+                            v
+  +------------------+    +----------------------------+    +------------------+
+  | SimulatedExecutor|    |   Executor                 |    |  RAZORPAY API    |
+  | (offline bench.) |<---|   executor.py              |--->|  order.create()  |
+  +------------------+    |   auto-selects backend     |    |  payment_link()  |
+                           +----------------------------+    +------------------+
+                            |
+                            v
+  +------------------+    +----------------------------+    +------------------+
+  | Baseline Compare |    |   Evaluation Harness       |    | Counterfactual   |
+  | baseline.py      |<---|   evaluation.py            |--->| Ledger           |
+  | retry->retry->esc|    |   agent vs baseline        |    | ledger.py        |
+  +------------------+    +----------------------------+    +------------------+
+                            |
+                            v
+              +----------------------------+
+              |   FastAPI Server           |
+              |   main.py - 11 endpoints   |
+              |                            |
+              |   /api/decide   (POST)     |
+              |   /api/execute  (POST)     |
+              |   /api/dashboard (GET)     |
+              |   /api/benchmark (GET)     |
+              +----------------------------+
+                            |
+                            v
+              +----------------------------+
+              |   Dashboard                |
+              |   frontend/dashboard.html  |
+              |   live metrics from API    |
+              +----------------------------+
 
 ```
 
-### Recovery Actions
+Every box maps to an actual file in the project.
 
-| Action | What Happens | When It's Best |
-| --- | --- | --- |
-| `RETRY_PAYMENT` | `razorpay.order.create()` — new order for same amount | Bank timeouts, transient failures |
-| `CREATE_PAYMENT_LINK` | `razorpay.payment_link.create()` — SMS/email link to customer | Expired cards, method failures |
-| `SEND_REMINDER` | SMS/email/WhatsApp notification | Abandoned checkouts, overdue invoices |
-| `ESCALATE_TO_HUMAN` | Route to support team | High-risk, fraud flags, high-value |
+The four recovery actions it chooses from:
 
----
+- **Retry Payment** - creates a new Razorpay order for the same amount. Best for bank timeouts and transient failures.
+- **Create Payment Link** - sends an SMS/email payment link to the customer. Best for expired cards and method failures.
+- **Send Reminder** - SMS, email, or WhatsApp notification. Best for abandoned checkouts and overdue invoices.
+- **Escalate to Human** - routes to the support team. Best for high-risk cases, fraud flags, and high-value transactions.
 
 ## Quick Start
 
-### Prerequisites
-
-- Python 3.10+
-- pip
-
-### 1. Install Dependencies
+You need Python 3.10+ and pip.
 
 ```bash
+# install dependencies
 cd rce
 pip install -r requirements.txt
 
-```
-
-### 2. Train Model & Run Benchmark
-
-```bash
+# train the model and run the benchmark
 python run_pipeline.py
 
-```
-
-This will:
-
-- Train the HistGradientBoosting recovery model on 70% of the 10,000-case benchmark dataset
-- Evaluate agent vs fixed-rule baseline on the 15% held-out test set
-- Save results to `data/benchmark.json`
-- Print the comparison table
-
-### 3. Start the API Server
-
-```bash
+# start the API server
 uvicorn backend.main:app --reload --port 8000
 
 ```
 
-### 4. Open the Dashboard
+Then open `frontend/dashboard.html` in your browser.
 
-Open `frontend/dashboard.html` in your browser.
+The dashboard fetches live data from `http://localhost:8000`, so the backend server needs to be running. If you see a 405 error on the "Agent Decision" panel, it means the server isn't up yet.
 
-> **Important:** The dashboard fetches live data from `http://localhost:8000`. The backend server (step 3) must be running, otherwise API calls like `/api/decide` will fail with a 405 error.
+`run_pipeline.py` does three things: trains the HistGradientBoosting model on 70% of the 10,000-case dataset, evaluates the agent against the fixed-rule baseline on 15% held-out test cases, and saves the results to `data/benchmark.json`.
 
----
+## Razorpay Integration
 
-## Razorpay Integration (3 Steps)
+To connect to real Razorpay in test mode:
 
-To connect to real Razorpay (test mode):
+**1. Get test keys** from the Razorpay Dashboard (Settings > API Keys > Generate Key). Make sure you're in Test Mode. You'll get a Key ID starting with `rzp_test_` and a Key Secret.
 
-### Step 1 — Get Test Keys
-
-1. Go to [Razorpay Dashboard](https://dashboard.razorpay.com) → **Test Mode**
-2. **Settings → API Keys → Generate Key**
-3. Copy `Key ID` (`rzp_test_...`) and `Key Secret`
-
-### Step 2 — Set Environment Variables
+**2. Set environment variables:**
 
 ```bash
 export RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
-export RAZORPAY_KEY_SECRET=your_key_secret_here
-export RAZORPAY_WEBHOOK_SECRET=your_webhook_secret   # optional
+export RAZORPAY_KEY_SECRET=your_key_secret
+export RAZORPAY_WEBHOOK_SECRET=your_webhook_secret  # optional, for signature verification
 
 ```
 
-### Step 3 — Configure Webhook on Razorpay
+**3. Configure the webhook** in Razorpay Dashboard > Settings > Webhooks > Add New Webhook. Set the URL to `https://your-server.com/api/webhook/razorpay` and enable `payment.failed`, `payment.captured`, and `payment_link.paid` events.
 
-1. Razorpay Dashboard → **Settings → Webhooks → Add New Webhook**
-2. **URL:** `https://your-server.com/api/webhook/razorpay`
-3. **Events:** `payment.failed`, `payment.captured`, `payment_link.paid`
+Without the environment variables, the engine falls back to `SimulatedExecutor` for offline benchmarking. With them set, it automatically uses `RazorpayLiveExecutor` and makes real API calls against Razorpay's test sandbox.
 
-> Without env vars, the engine auto-falls back to `SimulatedExecutor` (offline benchmark mode). With env vars set, it auto-switches to `RazorpayLiveExecutor`.
+## API
 
----
+The server exposes 11 endpoints:
 
-## API Endpoints
-
-| Method | Endpoint | Description |
+| Method | Endpoint | What it does |
 | --- | --- | --- |
-| `GET` | `/api/health` | Model status check |
-| `GET` | `/api/dashboard` | Summary metrics for dashboard cards |
-| `GET` | `/api/benchmark` | Full agent vs baseline benchmark results |
-| `GET` | `/api/segments` | Breakdown by failure reason, risk tier, etc. |
-| `GET` | `/api/ledger?system=agent&limit=25` | Paginated decision ledger |
-| `GET` | `/api/decision/{case_id}` | Single-case decision trace |
-| `GET` | `/api/live-ledger` | Real-time ledger of live executions |
-| `POST` | `/api/decide` | Submit event JSON → get structured decision |
-| `POST` | `/api/execute` | Decide + execute through live/simulated executor |
-| `POST` | `/api/razorpay/recover` | Accepts Razorpay `payment.failed` webhook format |
-| `POST` | `/api/webhook/razorpay` | Webhook receiver for Razorpay reconciliation |
+| GET | /api/health | Check if the model is loaded |
+| GET | /api/dashboard | Summary metrics for the dashboard |
+| GET | /api/benchmark | Full agent vs baseline results |
+| GET | /api/segments | Breakdown by failure reason, risk tier, etc. |
+| GET | /api/ledger | Paginated decision ledger (pass `system=agent` or `baseline`, `limit=25`) |
+| GET | /api/decision/{case_id} | Full decision trace for a single case |
+| GET | /api/live-ledger | Real-time ledger of live /api/execute calls |
+| POST | /api/decide | Submit an event, get back a decision |
+| POST | /api/execute | Decide and execute (creates Razorpay orders/links) |
+| POST | /api/razorpay/recover | Accepts Razorpay's native payment.failed payload format |
+| POST | /api/webhook/razorpay | Receives Razorpay reconciliation webhooks |
 
-### Example: `/api/decide`
-
-**Request:**
+Example request to `/api/decide`:
 
 ```json
 {
@@ -147,7 +181,7 @@ export RAZORPAY_WEBHOOK_SECRET=your_webhook_secret   # optional
 
 ```
 
-**Response:**
+Example response:
 
 ```json
 {
@@ -167,158 +201,158 @@ export RAZORPAY_WEBHOOK_SECRET=your_webhook_secret   # optional
 
 ```
 
----
-
 ## How the Engine Works
 
-### Decision Formula
-
-For each possible action:
+For each possible action, the engine computes:
 
 ```
-expected_recovery = amount × P(success | action, context) − intervention_cost − risk_penalty
+expected_recovery = amount x P(success | action, context) - intervention_cost - risk_penalty
 
 ```
 
-The agent picks the action with the **highest expected recovery**.
+It picks the action with the highest expected recovery.
 
-### ML Model
+**The ML model** is a HistGradientBoosting classifier from scikit-learn. It takes 42 features (customer behavior, transaction history, risk signals) and outputs P(recovery | action, context) for each action. It's trained on a 70/15/15 split of the 10,000-case benchmark dataset.
 
-- **Algorithm:** HistGradientBoosting (scikit-learn)
-- **Input:** 42 features (customer behavior, transaction history, risk signals)
-- **Output:** P(recovery | action, context) per action
-- **Training:** 70/15/15 train/val/test split on 10,000 benchmark cases
+**The safety gate** is a deterministic policy check that sits outside the model. The AI cannot bypass it. The rules are simple:
 
-### Safety Gate (Non-Overridable)
+- Previous fraud detected: escalate
+- Risk signal count >= 5: escalate
+- Amount over 50,000 INR: requires human approval
+- Max retry count exceeded: escalate
+- Model confidence below threshold: escalate
+- Recovery eligibility is NONE: block entirely
 
-The ML model's recommendation passes through a **deterministic policy gate** that the AI cannot bypass:
+Policy violations in the benchmark: zero. This is an architectural guarantee, not an aspiration.
 
-| Condition | Action |
-| --- | --- |
-| Previous fraud detected | → ESCALATE |
-| Risk signal count ≥ 5 | → ESCALATE |
-| Amount > ₹50,000 | → Requires human approval |
-| Max retry count exceeded | → ESCALATE |
-| Confidence below threshold | → ESCALATE |
-| Recovery eligibility = NONE | → BLOCK |
+**Leakage prevention** is enforced through strict column separation in `backend/features/columns.py`. The model sees 42 input features. The 19 evaluation/outcome columns never enter the model. This is tested automatically.
 
-**Policy violations: always 0.** The safety gate is deterministic and sits outside the model.
+## Results
 
-### Leakage Prevention
+Benchmark output from the current pipeline run, evaluated on 1,500 held-out test cases:
 
-Strict column separation enforced in `backend/features/columns.py`:
+| Metric | Fixed Rules | Agent |
+| --- | --- | --- |
+| Revenue recovered | 835,674 | 928,803 |
+| Recovery rate | 58.3% | 64.8% |
+| Incremental revenue | - | +93,129 |
+| Uplift | - | +11.1% |
+| Intervention rate | 100% | 98.1% |
+| Escalation rate | 68.8% | 54.8% |
+| No-action rate | 0% | 1.9% |
+| Policy violations | - | 0 |
 
-- `AGENT_INPUT_COLUMNS` — 42 features the model is allowed to see
-- `EVALUATION_COLUMNS` — 19 target/outcome columns that NEVER enter the model
-- Automated leakage tests in `tests/test_engine.py`
+These numbers come from running `python run_pipeline.py` with the current dataset, model, and configuration. They are not hard-coded. If you change the dataset, retrain the model, or adjust the configuration, the numbers will change. The dashboard displays whatever the current evaluation produces.
 
----
+This is a benchmark on synthetic counterfactual data, not a production performance guarantee.
+
+## Dashboard
+
+The dashboard at `frontend/dashboard.html` pulls metrics live from the backend API. Everything it displays - revenue at risk, agent recovered, baseline recovered, incremental revenue, uplift, recovery rate, escalation rate, policy violations - is dynamically calculated from the current evaluation run.
+
+If you retrain the model or change the config, restart the server and refresh the dashboard. The numbers update automatically.
 
 ## Configuration
 
-All tunable parameters in `backend/models_ml/config.py`:
-
-```python
-InterventionCosts:
-  RETRY_PAYMENT:        ₹5
-  CREATE_PAYMENT_LINK:  ₹8
-  SEND_REMINDER:        ₹2
-  ESCALATE_TO_HUMAN:    ₹50
-
-RiskPenalties:
-  high:    4% of transaction amount
-  medium:  1% of transaction amount
-  low:     0%
+All tunable parameters live in `backend/models_ml/config.py`:
 
 ```
+Intervention costs:
+  Retry Payment:        5 INR
+  Create Payment Link:  8 INR
+  Send Reminder:        2 INR
+  Escalate to Human:    50 INR
 
----
+Risk penalties:
+  High risk:   4% of transaction amount
+  Medium risk: 1% of transaction amount
+  Low risk:    0%
+
+```
 
 ## Project Structure
 
 ```
 rce/
-├── backend/
-│   ├── features/
-│   │   ├── columns.py                # Leakage prevention config
-│   │   └── feature_engineering.py    # 87-feature pipeline
-│   ├── models_ml/
-│   │   ├── recovery_model.py         # RecoveryModel interface + implementations
-│   │   ├── train.py                  # Training pipeline
-│   │   ├── config.py                 # Intervention costs, risk penalties
-│   │   └── artifacts/                # Trained model weights
-│   ├── counterfactual_engine.py      # Core decisioning (calls ML model)
-│   ├── ground_truth.py               # Synthetic benchmark environment
-│   ├── policy_engine.py              # Deterministic safety gate
-│   ├── risk_engine.py                # Risk scoring
-│   ├── context.py                    # Customer intent reconstruction
-│   ├── executor.py                   # Razorpay Live + Simulator
-│   ├── ledger.py                     # Audit trail
-│   ├── evaluation.py                 # Business-value benchmark
-│   ├── baseline.py                   # Fixed-rule comparator
-│   ├── dataset_generator.py          # Legacy synthetic dataset
-│   ├── models.py                     # Pydantic data models
-│   └── main.py                       # FastAPI application
-├── frontend/
-│   └── dashboard.html                # Decision trace UI
-├── data/
-│   ├── revenue_recovery_benchmark.csv  # 10,000-case benchmark
-│   └── benchmark.json                # Evaluation results
-├── tests/
-│   └── test_engine.py                # 25+ unit tests
-├── run_pipeline.py                   # One-command runner
-├── requirements.txt                  # Python dependencies
-└── pyproject.toml                    # Project metadata
+  backend/
+    features/
+      columns.py                 - leakage prevention config
+      feature_engineering.py     - 87-feature pipeline
+    models_ml/
+      recovery_model.py          - model interface and implementations
+      train.py                   - training pipeline
+      config.py                  - costs, penalties, thresholds
+      artifacts/                 - saved model weights
+    counterfactual_engine.py     - core decision engine
+    ground_truth.py              - synthetic benchmark environment
+    policy_engine.py             - deterministic safety gate
+    risk_engine.py               - risk scoring
+    context.py                   - customer intent reconstruction
+    executor.py                  - Razorpay live executor + simulator
+    ledger.py                    - audit trail
+    evaluation.py                - benchmark evaluation harness
+    baseline.py                  - fixed-rule comparator
+    dataset_generator.py         - legacy synthetic dataset generator
+    models.py                    - data models
+    main.py                      - FastAPI server
+  frontend/
+    dashboard.html               - decision trace dashboard
+  data/
+    revenue_recovery_benchmark.csv  - 10,000-case benchmark dataset
+    benchmark.json               - evaluation results
+  tests/
+    test_engine.py               - 25+ unit tests
+  run_pipeline.py                - one-command pipeline runner
+  requirements.txt
+  pyproject.toml
 
 ```
 
----
-
-## Running Tests
+## Tests
 
 ```bash
 python -m pytest tests/ -v
 
 ```
 
----
-
 ## Datasets
 
-Three independently-sampled evidence layers (10,000 benchmark cases):
+The benchmark uses 10,000 cases built from three independently sampled evidence layers:
 
-1. **E-commerce Customer Behavior** — session duration, pages viewed, device, payment method, demographics
-2. **Large Sales Transaction History** — customer-level aggregates: lifetime spend, frequency, recency, value segment
-3. **Fraud/Risk Detection** — risk flags, failed transactions, velocity, unusual patterns
+1. E-commerce customer behavior (sessions, device, pages, payment method, demographics)
+2. Sales transaction history (lifetime spend, frequency, recency, value segment)
+3. Fraud and risk signals (risk flags, failed transactions, velocity, unusual patterns)
 
----
+These are independently sampled. There are no fabricated cross-dataset joins.
 
 ## Reproducibility
 
-- Random seed: `42` (all stochastic processes)
-- Train/Val/Test: 70/15/15 split
-- Benchmark dataset: `data/revenue_recovery_benchmark.csv` (10,000 cases)
-- Model artifacts: `backend/models_ml/artifacts/`
+The benchmark is reproducible when you keep the same:
 
----
+- Dataset (`data/revenue_recovery_benchmark.csv`)
+- Random seed (42, used everywhere)
+- Train/val/test split (70/15/15)
+- Model implementation and saved weights (`backend/models_ml/`)
+- Configuration (`backend/models_ml/config.py`)
+- Evaluation logic (`backend/evaluation.py`)
+
+Change any of these and the numbers will change.
 
 ## Limitations
 
-1. **Synthetic counterfactual labels** — Benchmark outcomes are simulated, not observed real-world recovery rates
-2. **No cross-dataset customer linkage** — The three source datasets are independently sampled
-3. **Razorpay live mode** — Architecture supports it but not tested against real `rzp_test_` credentials
-4. **Causal claims** — The model estimates correlational recovery probabilities, not causal effects
-
----
+1. **Synthetic data.** The benchmark outcomes come from a synthetic counterfactual environment. They allow reproducible evaluation but don't represent observed real-world recovery rates or causal effects.
+2. **Benchmark is not production.** The metrics show how the system behaves under controlled conditions. They should not be read as guaranteed production performance or guaranteed uplift in a live environment.
+3. **Prediction, not causation.** The model estimates the probability of recovery given an action and context. It does not establish that the action caused the recovery.
+4. **Independent datasets.** The three source datasets are independently sampled. There are no fabricated cross-dataset customer links.
+5. **Razorpay live mode untested.** The architecture supports live Razorpay API calls, but this hasn't been tested against real `rzp_test_` credentials.
+6. **Not an LLM.** The model is a HistGradientBoosting classifier from scikit-learn. It predicts recovery probabilities from structured features. It is not a large language model.
 
 ## Tech Stack
 
-| Component | Technology |
-| --- | --- |
-| Backend | FastAPI + Python |
-| ML Model | scikit-learn HistGradientBoosting |
-| Data | pandas + numpy |
-| Payment API | Razorpay Python SDK |
-| Frontend | Vanilla HTML/CSS/JS |
-| Deployment | Vercel (FastAPI entrypoint) |
+- Backend: FastAPI + Python
+- ML: scikit-learn (HistGradientBoosting)
+- Data: pandas, numpy
+- Payments: Razorpay Python SDK
+- Frontend: HTML, CSS, JS (no framework)
+- Deployment: Vercel
 
