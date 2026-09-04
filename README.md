@@ -4,194 +4,151 @@
 
 > When revenue fails, the best action is **not always retry**.
 
-## Core Idea
+---
+
+## What It Does
+
+When a payment fails on Razorpay, this engine **doesn't blindly retry**. It evaluates every possible recovery action, predicts the expected monetary value of each, and picks the one that maximizes revenue — all within safety constraints.
 
 ```
-Payment Failure / At-Risk Event
+Payment fails on Razorpay
         │
-        v
-What could we do?
+   ① WEBHOOK IN ─── Razorpay sends payment.failed to your server
         │
-        ├── Retry Payment
-        ├── Create Payment Link
-        ├── Send Reminder
-        ├── No Action (legitimate option)
-        └── Escalate to Human
+   ② DIAGNOSE ───── Root cause + customer context (87 features)
         │
-        v
-What is the EXPECTED MONETARY VALUE of each?
+   ③ EVALUATE ───── ML model predicts ₹ value of each action
         │
-        v
-Which action is safest AND most valuable?
+   ④ SAFETY GATE ── Deterministic policy check (AI cannot override)
+        │
+   ⑤ EXECUTE ────── Razorpay API: retry / payment link / remind / escalate
+        │
+   ⑥ RECONCILE ──── Razorpay webhooks back with the result
+
 ```
 
-This is a **data-driven counterfactual revenue recovery engine** that:
+### Recovery Actions
 
-1. **Builds context** — customer value, transaction history, behavioral signals, risk indicators
-2. **Predicts outcomes** — ML model estimates P(recovery | action, context) for each intervention
-3. **Computes expected value** — converts probabilities into ₹ amounts minus costs and risk penalties
-4. **Applies safety constraints** — deterministic policy gate the AI cannot override
-5. **Selects the best action** — including "do nothing" when intervention isn't worth the cost
-6. **Executes and records** — immutable counterfactual ledger for auditability
-7. **Evaluates against baseline** — proves incremental value vs fixed rules
+| Action | What Happens | When It's Best |
+| --- | --- | --- |
+| `RETRY_PAYMENT` | `razorpay.order.create()` — new order for same amount | Bank timeouts, transient failures |
+| `CREATE_PAYMENT_LINK` | `razorpay.payment_link.create()` — SMS/email link to customer | Expired cards, method failures |
+| `SEND_REMINDER` | SMS/email/WhatsApp notification | Abandoned checkouts, overdue invoices |
+| `ESCALATE_TO_HUMAN` | Route to support team | High-risk, fraud flags, high-value |
 
-## Architecture
-
-```
-SOURCE DATASETS (3 evidence layers)
-        │
-        v
-Feature Engineering (87 features)
-        │
-        v
-Customer / Transaction Context
-        │
-        v
-Recovery Propensity Model (HistGradientBoosting)
-        │
-        v
-P(recovery | action, context) for each action
-        │
-        v
-Counterfactual Engine → Expected Monetary Value
-        │
-        v
-Safety / Policy Gate (deterministic, non-overridable)
-        │
-        v
-RETRY | PAYMENT_LINK | REMINDER | NO_ACTION | ESCALATE
-        │
-        v
-Executor (Razorpay Live or Simulator)
-        │
-        v
-Counterfactual Ledger (audit trail)
-        │
-        v
-Evaluation (business-value metrics)
-```
-
-## Key Distinction: What This Is vs What This Isn't
-
-| This System | NOT This |
-|---|---|
-| Counterfactual decision engine | Generic fraud classifier |
-| Expected monetary value optimization | Probability-only ranking |
-| Safety-constrained AI | Unconstrained ML predictions |
-| Honest about synthetic labels | Claiming causal effects from observational data |
-
-### Important Terminology
-
-- **Synthetic Counterfactual Labels**: The benchmark dataset's outcome labels are generated from a synthetic environment. They enable reproducible evaluation but do NOT represent observed causal effects.
-- **Recovery Propensity Model**: Estimates P(recovery | action, context) — a prediction, not a causal claim.
-- **Benchmark Environment** (`ground_truth.py`): The canonical outcome simulator for offline evaluation. Deliberately different from the agent's model.
-
-## Datasets
-
-Three independently-sampled evidence layers (10,000 benchmark cases):
-
-1. **E-commerce Customer Behavior** — session duration, pages viewed, device, payment method, demographics
-2. **Large Sales Transaction History** — customer-level aggregates: lifetime spend, frequency, recency, value segment
-3. **Fraud/Risk Detection** — risk flags, failed transactions, velocity, unusual patterns
-
-**Data Linkage**: No fabricated cross-dataset joins. The three layers are independently sampled and clearly documented as such.
-
-## Leakage Prevention
-
-Strict separation:
-- `AGENT_INPUT_COLUMNS` — 42 features the model is allowed to see
-- `EVALUATION_COLUMNS` — 19 target/outcome columns that NEVER enter the model
-- Automated leakage tests in `tests/test_engine.py`
-
-## Results
-
-### Model Performance (Logistic Bootstrap → HistGBM on local run)
-
-| Split | AUC | Accuracy | F1 |
-|-------|-----|----------|-----|
-| Train | — | 0.62 | 0.67 |
-| Val | — | 0.62 | 0.67 |
-| Test | — | 0.59 | 0.65 |
-
-*Note: Bootstrap logistic model. Run `python run_pipeline.py` with sklearn for HistGradientBoosting (~0.75+ AUC expected).*
-
-### Benchmark: Agent vs Baseline (1,500 test cases)
-
-| Metric | Fixed Rules | CF Agent |
-|--------|-------------|----------|
-| Revenue recovered | ₹835,674 | ₹928,803 |
-| Recovery rate | 58.3% | 64.8% |
-| **Incremental revenue** | — | **₹93,129** |
-| **Uplift** | — | **+11.1%** |
-| Intervention rate | 100% | 98.1% |
-| Escalation rate | 68.8% | 54.8% |
-| No-action rate | 0% | 1.9% |
-| Policy violations | — | **0** |
+---
 
 ## Quick Start
 
+### Prerequisites
+
+- Python 3.10+
+- pip
+
+### 1. Install Dependencies
+
 ```bash
-# 1. Install dependencies
+cd rce
 pip install -r requirements.txt
 
-# 2. Run the full pipeline (train + evaluate)
+```
+
+### 2. Train Model & Run Benchmark
+
+```bash
 python run_pipeline.py
 
-# 3. Start the API
+```
+
+This will:
+
+- Train the HistGradientBoosting recovery model on 70% of the 10,000-case benchmark dataset
+- Evaluate agent vs fixed-rule baseline on the 15% held-out test set
+- Save results to `data/benchmark.json`
+- Print the comparison table
+
+### 3. Start the API Server
+
+```bash
 uvicorn backend.main:app --reload --port 8000
 
-# 4. Open the dashboard
-open frontend/dashboard.html
 ```
 
-## Project Structure
+### 4. Open the Dashboard
+
+Open `frontend/dashboard.html` in your browser.
+
+> **Important:** The dashboard fetches live data from `http://localhost:8000`. The backend server (step 3) must be running, otherwise API calls like `/api/decide` will fail with a 405 error.
+
+---
+
+## Razorpay Integration (3 Steps)
+
+To connect to real Razorpay (test mode):
+
+### Step 1 — Get Test Keys
+
+1. Go to [Razorpay Dashboard](https://dashboard.razorpay.com) → **Test Mode**
+2. **Settings → API Keys → Generate Key**
+3. Copy `Key ID` (`rzp_test_...`) and `Key Secret`
+
+### Step 2 — Set Environment Variables
+
+```bash
+export RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
+export RAZORPAY_KEY_SECRET=your_key_secret_here
+export RAZORPAY_WEBHOOK_SECRET=your_webhook_secret   # optional
 
 ```
-rce/
-├── backend/
-│   ├── features/
-│   │   ├── columns.py              # Leakage prevention config
-│   │   └── feature_engineering.py   # 87-feature pipeline
-│   ├── models_ml/
-│   │   ├── recovery_model.py        # RecoveryModel interface + implementations
-│   │   ├── train.py                 # Training pipeline
-│   │   ├── config.py                # Intervention costs, risk penalties
-│   │   └── artifacts/               # Trained model weights
-│   ├── counterfactual_engine.py     # Core decisioning (calls ML model)
-│   ├── ground_truth.py              # Synthetic benchmark environment
-│   ├── policy_engine.py             # Deterministic safety gate
-│   ├── risk_engine.py               # Risk scoring
-│   ├── context.py                   # Customer intent reconstruction
-│   ├── executor.py                  # Razorpay Live + Simulator
-│   ├── ledger.py                    # Audit trail
-│   ├── evaluation.py                # Business-value benchmark
-│   ├── baseline.py                  # Fixed-rule comparator
-│   ├── dataset_generator.py         # Legacy synthetic dataset
-│   ├── models.py                    # Pydantic data models
-│   └── main.py                      # FastAPI application
-├── frontend/
-│   └── dashboard.html               # Decision trace UI
-├── data/
-│   ├── revenue_recovery_benchmark.csv  # 10,000-case benchmark
-│   └── benchmark.json               # Results
-├── tests/
-│   └── test_engine.py               # 25+ tests
-├── run_pipeline.py                  # One-command runner
-└── requirements.txt
+
+### Step 3 — Configure Webhook on Razorpay
+
+1. Razorpay Dashboard → **Settings → Webhooks → Add New Webhook**
+2. **URL:** `https://your-server.com/api/webhook/razorpay`
+3. **Events:** `payment.failed`, `payment.captured`, `payment_link.paid`
+
+> Without env vars, the engine auto-falls back to `SimulatedExecutor` (offline benchmark mode). With env vars set, it auto-switches to `RazorpayLiveExecutor`.
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/api/health` | Model status check |
+| `GET` | `/api/dashboard` | Summary metrics for dashboard cards |
+| `GET` | `/api/benchmark` | Full agent vs baseline benchmark results |
+| `GET` | `/api/segments` | Breakdown by failure reason, risk tier, etc. |
+| `GET` | `/api/ledger?system=agent&limit=25` | Paginated decision ledger |
+| `GET` | `/api/decision/{case_id}` | Single-case decision trace |
+| `GET` | `/api/live-ledger` | Real-time ledger of live executions |
+| `POST` | `/api/decide` | Submit event JSON → get structured decision |
+| `POST` | `/api/execute` | Decide + execute through live/simulated executor |
+| `POST` | `/api/razorpay/recover` | Accepts Razorpay `payment.failed` webhook format |
+| `POST` | `/api/webhook/razorpay` | Webhook receiver for Razorpay reconciliation |
+
+### Example: `/api/decide`
+
+**Request:**
+
+```json
+{
+  "transaction_id": "ORD_DEMO_001",
+  "amount": 8950,
+  "event_type": "payment_failed",
+  "failure_reason": "transient_bank_failure",
+  "payment_method": "card",
+  "customer_previous_payments": 8,
+  "customer_previous_failures": 1,
+  "days_since_last_purchase": 5,
+  "retry_count": 0,
+  "customer_value": 42000
+}
+
 ```
 
-## API
+**Response:**
 
-```
-POST /api/decide    → Submit event, get structured decision
-POST /api/execute   → Decide + execute (idempotent)
-GET  /api/dashboard → Summary metrics
-GET  /api/benchmark → Full results
-GET  /api/segments  → Breakdown by segment
-GET  /api/health    → Model status
-```
-
-Example response from `/api/decide`:
 ```json
 {
   "case_id": "EVT_A1B2C3D4E5",
@@ -207,7 +164,55 @@ Example response from `/api/decide`:
   "risk_tier": "low",
   "reasoning": ["Root cause: transient_bank_failure", "Customer intent: high"]
 }
+
 ```
+
+---
+
+## How the Engine Works
+
+### Decision Formula
+
+For each possible action:
+
+```
+expected_recovery = amount × P(success | action, context) − intervention_cost − risk_penalty
+
+```
+
+The agent picks the action with the **highest expected recovery**.
+
+### ML Model
+
+- **Algorithm:** HistGradientBoosting (scikit-learn)
+- **Input:** 42 features (customer behavior, transaction history, risk signals)
+- **Output:** P(recovery | action, context) per action
+- **Training:** 70/15/15 train/val/test split on 10,000 benchmark cases
+
+### Safety Gate (Non-Overridable)
+
+The ML model's recommendation passes through a **deterministic policy gate** that the AI cannot bypass:
+
+| Condition | Action |
+| --- | --- |
+| Previous fraud detected | → ESCALATE |
+| Risk signal count ≥ 5 | → ESCALATE |
+| Amount > ₹50,000 | → Requires human approval |
+| Max retry count exceeded | → ESCALATE |
+| Confidence below threshold | → ESCALATE |
+| Recovery eligibility = NONE | → BLOCK |
+
+**Policy violations: always 0.** The safety gate is deterministic and sits outside the model.
+
+### Leakage Prevention
+
+Strict column separation enforced in `backend/features/columns.py`:
+
+- `AGENT_INPUT_COLUMNS` — 42 features the model is allowed to see
+- `EVALUATION_COLUMNS` — 19 target/outcome columns that NEVER enter the model
+- Automated leakage tests in `tests/test_engine.py`
+
+---
 
 ## Configuration
 
@@ -219,37 +224,101 @@ InterventionCosts:
   CREATE_PAYMENT_LINK:  ₹8
   SEND_REMINDER:        ₹2
   ESCALATE_TO_HUMAN:    ₹50
-  NO_ACTION:            ₹0
 
 RiskPenalties:
-  high:   15% of transaction amount
-  medium:  5% of transaction amount
+  high:    4% of transaction amount
+  medium:  1% of transaction amount
   low:     0%
 
-min_intervention_threshold: ₹10  (below this, prefer NO_ACTION)
 ```
 
-## Safety
+---
 
-The AI model **cannot override** the deterministic policy gate:
-- Max retry count exceeded → ESCALATE
-- Amount > ₹50,000 → requires human approval
-- Confidence below threshold → ESCALATE
-- Previous fraud detected → ESCALATE
-- Recovery eligibility = NONE → BLOCK
+## Project Structure
+
+```
+rce/
+├── backend/
+│   ├── features/
+│   │   ├── columns.py                # Leakage prevention config
+│   │   └── feature_engineering.py    # 87-feature pipeline
+│   ├── models_ml/
+│   │   ├── recovery_model.py         # RecoveryModel interface + implementations
+│   │   ├── train.py                  # Training pipeline
+│   │   ├── config.py                 # Intervention costs, risk penalties
+│   │   └── artifacts/                # Trained model weights
+│   ├── counterfactual_engine.py      # Core decisioning (calls ML model)
+│   ├── ground_truth.py               # Synthetic benchmark environment
+│   ├── policy_engine.py              # Deterministic safety gate
+│   ├── risk_engine.py                # Risk scoring
+│   ├── context.py                    # Customer intent reconstruction
+│   ├── executor.py                   # Razorpay Live + Simulator
+│   ├── ledger.py                     # Audit trail
+│   ├── evaluation.py                 # Business-value benchmark
+│   ├── baseline.py                   # Fixed-rule comparator
+│   ├── dataset_generator.py          # Legacy synthetic dataset
+│   ├── models.py                     # Pydantic data models
+│   └── main.py                       # FastAPI application
+├── frontend/
+│   └── dashboard.html                # Decision trace UI
+├── data/
+│   ├── revenue_recovery_benchmark.csv  # 10,000-case benchmark
+│   └── benchmark.json                # Evaluation results
+├── tests/
+│   └── test_engine.py                # 25+ unit tests
+├── run_pipeline.py                   # One-command runner
+├── requirements.txt                  # Python dependencies
+└── pyproject.toml                    # Project metadata
+
+```
+
+---
+
+## Running Tests
+
+```bash
+python -m pytest tests/ -v
+
+```
+
+---
+
+## Datasets
+
+Three independently-sampled evidence layers (10,000 benchmark cases):
+
+1. **E-commerce Customer Behavior** — session duration, pages viewed, device, payment method, demographics
+2. **Large Sales Transaction History** — customer-level aggregates: lifetime spend, frequency, recency, value segment
+3. **Fraud/Risk Detection** — risk flags, failed transactions, velocity, unusual patterns
+
+---
 
 ## Reproducibility
 
-- Random seed: 42 (all stochastic processes)
-- Train/Val/Test: 70/15/15 stratified split
+- Random seed: `42` (all stochastic processes)
+- Train/Val/Test: 70/15/15 split
 - Benchmark dataset: `data/revenue_recovery_benchmark.csv` (10,000 cases)
 - Model artifacts: `backend/models_ml/artifacts/`
 
+---
+
 ## Limitations
 
-1. **Bootstrap model**: The shipped numpy logistic model is a bootstrap. Run `python run_pipeline.py` for HistGradientBoosting.
-2. **Synthetic counterfactual labels**: Benchmark outcomes are simulated, not observed real-world recovery rates.
-3. **No cross-dataset customer linkage**: The three source datasets are independently sampled — no fabricated joins.
-4. **Razorpay live mode**: Not tested against real `rzp_test_` credentials (architecture supports it).
-5. **Causal claims**: The model estimates correlational recovery probabilities, not causal effects.
-# Revenue-Counterfactual-Engine
+1. **Synthetic counterfactual labels** — Benchmark outcomes are simulated, not observed real-world recovery rates
+2. **No cross-dataset customer linkage** — The three source datasets are independently sampled
+3. **Razorpay live mode** — Architecture supports it but not tested against real `rzp_test_` credentials
+4. **Causal claims** — The model estimates correlational recovery probabilities, not causal effects
+
+---
+
+## Tech Stack
+
+| Component | Technology |
+| --- | --- |
+| Backend | FastAPI + Python |
+| ML Model | scikit-learn HistGradientBoosting |
+| Data | pandas + numpy |
+| Payment API | Razorpay Python SDK |
+| Frontend | Vanilla HTML/CSS/JS |
+| Deployment | Vercel (FastAPI entrypoint) |
+
